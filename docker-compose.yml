@@ -1,0 +1,45 @@
+version: "3.7"
+services:
+  app:
+    container_name: christmas_present
+    build: ./docker
+    ports:
+      - 8080:8080
+    volumes:
+      - ./app:/app
+    stdin_open: true
+    tty: true
+    environment:
+      TZ: Europe/Paris
+  api:
+    container_name: api_container
+    build: ./docker/api
+    ports:
+      - 3000:3000
+    volumes:
+      - ./app/backend:/api
+    tty: true
+    environment:
+      TZ: Europe/Paris
+    depends_on:
+      - db
+  db:
+    container_name: db_container
+    build: ./docker/db
+    image: mysql:5.7
+    env_file:
+      - app/.env.local
+    ports:
+      - 3306:3306
+    volumes:
+      - ./db/conf/my.cnf:/etc/mysql/conf.d/custom.cnf
+      - ./db/init_db:/docker-entrypoint-initdb.d
+      - test_data:/var/lib/mysql
+    environment:
+      - MYSQL_DATABASE=${MYSQL_DATABASE-christmas_present}
+      - MYSQL_USER=${MYSQL_USER-vincerecaro}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD-test}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD-password}
+      - TZ="Europe/Paris"
+volumes:
+  test_data:
